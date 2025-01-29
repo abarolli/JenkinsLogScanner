@@ -1,14 +1,13 @@
 
-from argparse import ArgumentParser, Namespace
-import requests
 import validators
+from argparse import ArgumentParser, Namespace
 
 from scan_jenkins import JenkinsLogScanner, Operation
 
-from log_operations import head, tail
+import string_utils
 
 
-def collect_input() -> Namespace:
+def __collect_input() -> Namespace:
     parser = ArgumentParser()
     
     parser.add_argument('jenkins_url')
@@ -22,14 +21,13 @@ def collect_input() -> Namespace:
     return args
 
 
-def main():
+def __main():
 
-    args = collect_input()
+    args = __collect_input()
     
     scanner = JenkinsLogScanner(args.jenkins_url)
     ops = [
-        Operation("head", head),
-        Operation("tail", tail)
+        Operation('findings', string_utils.find_search_str, search_str=args.search_string),
     ]
 
     scans = scanner.scan_jenkins(ops)
@@ -39,4 +37,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    __main()
