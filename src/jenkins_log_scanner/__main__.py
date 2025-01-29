@@ -2,9 +2,8 @@
 import validators
 from argparse import ArgumentParser, Namespace
 
-from scan_jenkins import JenkinsLogScanner, Operation
-
-import string_utils
+from jenkins_log_scanner.scan_jenkins import JenkinsLogScanner, Operation
+import jenkins_log_scanner.string_utils as string_utils
 
 
 def __collect_input() -> Namespace:
