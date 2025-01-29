@@ -1,8 +1,11 @@
 
 from argparse import ArgumentParser, Namespace
+import requests
 import validators
 
-from scan_jenkins import JenkinsLogScanner
+from scan_jenkins import JenkinsLogScanner, Operation
+
+from log_operations import head, tail
 
 
 def collect_input() -> Namespace:
@@ -24,7 +27,18 @@ def main():
     args = collect_input()
     
     scanner = JenkinsLogScanner(args.jenkins_url)
-    scanner.scan_jenkins(args.search_string)
+    ops = [
+        Operation("head", head),
+        Operation("tail", tail)
+    ]
+    try:
+        scans = scanner.scan_jenkins(ops)
+    except requests.exceptions.RequestException as e:
+        print(f'scan_jenkins failed with the following response status code: {e.response.status_code}')
+        raise e
+
+    for scan in scans:
+        print(scan)
 
 
 if __name__ == '__main__':
