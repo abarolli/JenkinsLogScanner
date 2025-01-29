@@ -49,8 +49,8 @@ the snippet above can be changed to the following:
 
 ```
 ops = [
-    Operation('head', logops.head, lineCount = 2),
-    Operation('tail', logops.tail),
+    Operation('head', logops.head),
+    Operation('tail', logops.tail, lineCount = 2),
 ]
 ```
 
