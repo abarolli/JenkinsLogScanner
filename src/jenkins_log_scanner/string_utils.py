@@ -20,3 +20,27 @@ def find_search_str(target: str, search_str: str, before: int = 0, after: int = 
         maxsearches -= 1
     
     return results
+
+
+def find_search_str_range(target: str, start_str: str, stop_str: str, maxsearches: int = -1):
+    
+    results: List[str] = []
+    lines = target.splitlines(keepends=1)
+    current_finding: List[str] = []
+    is_collecting = False
+    for line in lines:
+        if maxsearches == 0: break
+
+        if start_str in line:
+            is_collecting = True
+        elif stop_str in line and is_collecting:
+            current_finding.append(line)
+            results.append(''.join(current_finding))
+            current_finding.clear()
+            is_collecting = False
+            maxsearches -= 1
+
+        if is_collecting:
+            current_finding.append(line)
+
+    return results
