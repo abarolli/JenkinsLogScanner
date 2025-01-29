@@ -78,6 +78,10 @@ class JenkinsLogScanner:
                 response=res)
         
         return res
+    
+
+    def __is_build_data(self, jenkins_data: dict) -> bool:
+        return bool(jenkins_data.get('builtOn'))
 
 
     def __scan_jobs(self, jobs: list[dict], operations: List[Operation]) -> List[BuildScan]:
@@ -140,3 +144,9 @@ class JenkinsLogScanner:
             return self.__scan_jobs(jobs, operations)
         elif (builds := jenkins_data.get('builds')):
             return self.__scan_builds(builds, operations)
+        elif (self.__is_build_data(jenkins_data)):
+            return [self.__scan_build(jenkins_data, operations)]
+        else:
+            raise AttributeError(
+                f'Could not determine the type of Jenkins data at the url {self.__url}'
+            )

@@ -1,5 +1,8 @@
 # JenkinsLogScanner - A fast utility for scanning Jenkins logs efficiently.
 
+JenkinsLogScanner is a utility for recursively scanning every build log within a Jenkins project (whether it is top level org or a single job).
+Its power is in its ability to scan many build logs in parallel, but it can be used just as well to scan individual builds.
+
 ## Environment Setup
 
 The library only expects two environment variables to be defined: `JENKINS_USER` and `JENKINS_PASSWORD`.
@@ -19,8 +22,8 @@ pip install jenkins-log-scanner
 from jenkins_log_scanner.scan_jenkins import JenkinsLogScanner, Operation
 import jenkins_log_scanner.log_operations as logops
 
-job_url = 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2/'
-scanner = JenkinsLogScanner(job_url)
+url = 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2/'
+scanner = JenkinsLogScanner(url)
 ops = [
     Operation('head', logops.head),
     Operation('tail', logops.tail),
@@ -33,9 +36,21 @@ for s in scanner.scan_jenkins(ops):
 Output:
 
 ```
-{'head': 'Jenkins job started by user...', 'tail': 'Finished: SUCCESS\n'}
-{'head': 'Jenkins job started by user...', 'tail': 'Finished: FAILURE\n'}
+{'jobUrl': 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2', 'buildNumber': 3, 'head': 'Started by user Adeiron Barolli\n', 'tail': 'Finished: FAILURE\n'}
+{'jobUrl': 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2', 'buildNumber': 2, 'head': 'Started by user Adeiron Barolli\n', 'tail': 'Finished: SUCCESS\n'}
+{'jobUrl': 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2', 'buildNumber': 1, 'head': 'Started by user Adeiron Barolli\n', 'tail': 'Finished: SUCCESS\n'}
 ...
+```
+
+To scan a single build, simply give the url to that build:
+
+```
+url = 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2/1'
+# or
+url = 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2/2'
+# or
+url = 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2/3'
+# etc...
 ```
 
 ## The Operation Class
@@ -57,7 +72,8 @@ ops = [
 Output:
 
 ```
-{'head': 'Jenkins job started by user...', 'tail': 'Build finished with success status code\nFinished: SUCCESS\n'}
-{'head': 'Jenkins job started by user...', 'tail': 'Build finished with failed status code\nFinished: FAILURE\n'}
+{'jobUrl': 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2', 'buildNumber': 3, 'head': 'Started by user Adeiron Barolli\n', 'tail': 'Build step "Execute shell" marked build\nFinished: FAILURE\n'}
+{'jobUrl': 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2', 'buildNumber': 2, 'head': 'Started by user Adeiron Barolli\n', 'tail': 'Build step "Execute shell" marked build\nFinished: SUCCESS\n'}
+{'jobUrl': 'http://localhost:8081/jenkins/job/testfolder1/job/testjob2', 'buildNumber': 1, 'head': 'Started by user Adeiron Barolli\n', 'tail': 'Build step "Execute shell" marked build\nFinished: SUCCESS\n'}
 ...
 ```
