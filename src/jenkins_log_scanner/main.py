@@ -31,11 +31,8 @@ def main():
         Operation("head", head),
         Operation("tail", tail)
     ]
-    try:
-        scans = scanner.scan_jenkins(ops)
-    except requests.exceptions.RequestException as e:
-        print(f'scan_jenkins failed with the following response status code: {e.response.status_code}')
-        raise e
+
+    scans = scanner.scan_jenkins(ops)
 
     for scan in scans:
         print(scan)

@@ -73,7 +73,7 @@ class JenkinsLogScanner:
     
         if not res.ok:
             raise requests.exceptions.RequestException(
-                f'The URL {url} returned a bad http response',
+                f'The URL {url} returned a bad http response {res.status_code}',
                 request=res.request,
                 response=res)
         
