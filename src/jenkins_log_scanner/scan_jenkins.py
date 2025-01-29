@@ -81,7 +81,7 @@ class JenkinsLogScanner:
     
 
     def __is_build_data(self, jenkins_data: dict) -> bool:
-        return bool(jenkins_data.get('builtOn'))
+        return 'builtOn' in jenkins_data
 
 
     def __scan_jobs(self, jobs: list[dict], operations: List[Operation]) -> List[BuildScan]:
@@ -138,7 +138,14 @@ class JenkinsLogScanner:
         '''
         res = self.__request(self.__url + '/api/json')
         
-        jenkins_data = res.json()
+        try:
+            jenkins_data = res.json()
+        except requests.exceptions.JSONDecodeError as e:
+            raise requests.exceptions.JSONDecodeError(
+                f'Could not decode json data at {self.__url + "/api/json"}; is this a valid Jenkins url?',
+                e.doc,
+                e.pos
+            )
 
         if (jobs := jenkins_data.get('jobs')):
             return self.__scan_jobs(jobs, operations)
