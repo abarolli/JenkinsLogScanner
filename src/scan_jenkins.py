@@ -1,3 +1,4 @@
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 import os
 from typing import List
 
@@ -101,17 +102,31 @@ class JenkinsLogScanner:
     def __scan_builds(self, builds: list[dict], operations: List[Operation]) -> List[BuildScan]:
         
         results: List[BuildScan] = []
-        for build in builds:
-            build_log_url = build.get('url') + 'consoleText'
-            res = self.__request(build_log_url)
-            build_log_contents = res.text
-            build_scan = BuildScan(build.get('url').rsplit('/', 2)[0], build.get('number'))
-            for operation in operations:
-                build_scan.add_result(operation.name, operation.call(build_log_contents))
-            results.append(build_scan)
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures: List[Future] = []
+            for build in builds:
+                futures.append(
+                    executor.submit(self.__scan_build, build, operations)
+                )
+            
+            for future in as_completed(futures):
+                results.append(future.result())
 
         return results
+    
 
+    def __scan_build(self, build: dict, operations: List[Operation]) -> BuildScan:
+
+        build_log_url = build.get('url') + 'consoleText'
+        res = self.__request(build_log_url)
+        build_log_contents = res.text
+        build_scan = BuildScan(build.get('url').rsplit('/', 2)[0], build.get('number'))
+        for operation in operations:
+            build_scan.add_result(operation.name, operation.call(build_log_contents)) #make sure each Operation has a unique name
+        
+        return build_scan
+    
 
     def scan_jenkins(self, operations: List[Operation]) -> List[BuildScan]:
         '''
