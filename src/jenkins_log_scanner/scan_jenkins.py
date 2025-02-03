@@ -1,6 +1,11 @@
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 import os
 from typing import List
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+
+JLS_VERIFY_SSL = True if os.environ.get('JLS_VERIFY_SSL', 'True') == 'True' else False
+if not JLS_VERIFY_SSL:
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import requests
 import requests.auth
@@ -68,7 +73,8 @@ class JenkinsLogScanner:
     def __request(self, url: str) -> requests.Response:
         res = requests.get(
             url,
-            auth=self.__auth
+            auth=self.__auth,
+            verify=JLS_VERIFY_SSL
         )
     
         if not res.ok:
