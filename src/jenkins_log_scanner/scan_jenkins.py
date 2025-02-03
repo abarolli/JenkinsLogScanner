@@ -93,18 +93,21 @@ class JenkinsLogScanner:
     def __scan_jobs(self, jobs: list[dict], operations: List[Operation]) -> List[BuildScan]:
         
         results: List[BuildScan] = []
-        for job in jobs:
-            job_api_url = job.get('url') + '/api/json'
-            res = self.__request(job_api_url)
 
-            job_data = res.json()
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures: List[Future] = []
+            for job in jobs:
+                job_api_url = job.get('url') + '/api/json'
+                res = self.__request(job_api_url)
 
-            if (more_jobs := job_data.get('jobs')):
-                scanned_builds = self.__scan_jobs(more_jobs, operations)
-            elif (builds := job_data.get('builds')):
-                scanned_builds = self.__scan_builds(builds, operations)
+                job_data = res.json()
+                if (more_jobs := job_data.get('jobs')):
+                    futures.append(executor.submit(self.__scan_jobs, more_jobs, operations))
+                elif (builds := job_data.get('builds')):
+                    futures.append(executor.submit(self.__scan_builds, builds, operations))
             
-            results.extend(scanned_builds)
+            for future in as_completed(futures):
+                results.extend(future.result())
         
         return results
 
